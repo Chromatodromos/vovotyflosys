@@ -12,8 +12,10 @@
 ![image](https://user-images.githubusercontent.com/56477554/110958357-4bacb280-8355-11eb-986e-01fa0e419a56.png)
 
 Θα υλοποιήσουμε το ελληνικό Morse προς το ελληνικό Braille
+
 Morse
 ![image](https://user-images.githubusercontent.com/56477554/110958948-e1484200-8355-11eb-91ae-8cd8eb65b1d6.png)
+
 Braille
 ![image](https://user-images.githubusercontent.com/56477554/110959212-25d3dd80-8356-11eb-9c80-a00eb4185895.png)
 
