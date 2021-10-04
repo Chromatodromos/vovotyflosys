@@ -1,0 +1,181 @@
+// Finished project Morse to Braille
+
+//Morse
+int button =12;
+int led =13;
+
+//GLOBAL VARIABLES 
+//Only to be seen on Serial Monitor
+static String greekLetterSymbols[] = {"A", "B", "|-", "D", "E","Z",
+                                      "H", "8", "I","K", "L","M",                                
+                                      "N","3","O","Pi","Ro","S",
+                                      "T","Y","F","X","PSi","W"};
+
+//Morse Greek Capital Letters list
+static String morseGreek[] = {".-", "-...", "--.", "-..", ".", "--..", 
+                         "....", "-.-.","..", "-.-", ".-..", "--", 
+                         "-.", "-..-", "---", ".--.", ".-.","...", 
+                         "-", "-.--", "..-.", "----", "--.-", ".--"};
+  
+//Braille Greek Capital Letters
+unsigned char Braille[24][6]= {
+    {HIGH, LOW, LOW, LOW, LOW, LOW},
+    {HIGH, LOW, HIGH, LOW, LOW, LOW}, 
+    {HIGH, HIGH, HIGH, HIGH, LOW, LOW},  
+    {HIGH, HIGH, LOW, HIGH, LOW, LOW},    
+    {HIGH, LOW, LOW, HIGH, LOW, LOW},    
+    {HIGH, LOW, LOW, HIGH, HIGH, HIGH},    
+    {LOW, HIGH, LOW, HIGH, HIGH, LOW},    
+    {HIGH, HIGH, LOW, HIGH, LOW, HIGH},
+    {LOW, HIGH, HIGH, LOW, LOW, LOW},
+    {HIGH, LOW, LOW, LOW, HIGH, LOW},
+    {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    {HIGH, HIGH, LOW, LOW, HIGH, LOW},
+    {HIGH, HIGH, LOW, HIGH, HIGH, LOW},
+    {HIGH, HIGH, LOW, LOW, HIGH, HIGH},
+    {HIGH, LOW, LOW, HIGH, HIGH, LOW},
+    {HIGH, HIGH, HIGH, LOW, HIGH, LOW},
+    {HIGH, LOW, HIGH, HIGH, HIGH, LOW},
+    {LOW, HIGH, HIGH, LOW, HIGH, LOW},
+    {LOW, HIGH, HIGH, HIGH, HIGH, LOW},
+    {HIGH, HIGH, LOW, HIGH, HIGH, HIGH},
+    {HIGH, HIGH, HIGH, LOW, LOW, LOW},
+    {HIGH, LOW, HIGH, HIGH, LOW, LOW},   
+    {HIGH, HIGH, HIGH, LOW, HIGH, HIGH},
+    {LOW, HIGH, HIGH, HIGH, LOW, LOW}
+    //{HIGH, HIGH, HIGH, HIGH, HIGH, HIGH}
+  
+  };
+
+void setup()
+{
+Serial.begin(9600);
+//Morse button & led-buzzer
+pinMode(button, INPUT);
+pinMode(led, OUTPUT);
+
+//Braille leds
+pinMode(2, OUTPUT);
+pinMode(3, OUTPUT);
+pinMode(4, OUTPUT);
+pinMode(5, OUTPUT);
+pinMode(6, OUTPUT);
+pinMode(7, OUTPUT);  
+}
+
+
+//The most important function in this project. Morse String composition. See Flow diagram on MakeLetterMorse Folder
+String makeLetter(){
+  // local variables declaration
+  String letter;
+  unsigned long sTP, eTP, pressTime; 
+  byte released, pressed;
+  
+  // flags and letter initialization
+  released=0;
+  pressed=0;
+  letter="";
+  
+  //main procedure
+  while (!released){
+    // button  pressed start Time Pressed (sTP)
+    if (pressed==0 && digitalRead(button)==HIGH){
+      digitalWrite(led, HIGH);
+      sTP=millis();
+      pressed=1;
+    }
+    //button released end Time Pressed (eTP)
+    if (pressed==1 && digitalRead(button)==LOW){
+      digitalWrite(led, LOW);
+      eTP=millis();
+      pressed=0;
+      pressTime = eTP - sTP;
+      if (pressTime >50 and pressTime<600){
+        letter +='.';  
+      } 
+      if (pressTime >600 and pressTime<1800){
+        letter +='-';  
+      } 
+    }
+    // if button released exceeds time between symbols, 
+    // letter is finished
+    // eTP is the last time the button was in state pressed
+    // millis() returns current time
+    if (pressed==0 && digitalRead(button)==LOW){
+      digitalWrite(led, LOW);
+      if (millis()-eTP>1800){
+        released =1;
+        return letter;
+      }
+    }
+  }
+}
+
+//-------------------------------------------------
+//Find the order in the list. Return the index
+int orderMorseArray(String inputMorse){
+  
+  
+  byte found =0;  
+  for (int i=0; i<24; i++){
+    if (inputMorse == morseGreek[i]){
+      found=1;      
+      return i;
+    }
+  }
+    if (!found){
+      return 24;
+    }
+}
+
+//-------------------------------------------------
+
+//Show Braille OR Vibrate Braille
+void showBraille(int order){
+  for (int j=0; j<6; j++){
+    digitalWrite(j+2, Braille[order][j]);  //pin begins from 2
+  }
+  
+
+//-------------------------------------------------
+
+//Clear Braille Leds or Vibrators
+void clearBraille(){
+  for (int j=0; j<6; j++){
+      digitalWrite(j+2, LOW);  //clear Braille leds
+    
+  }
+}
+
+//------------------------------------------------
+
+
+void loop()
+{ 
+  String letterProduced;
+  int index;
+ 
+  
+  letterProduced =makeLetter();
+  if (letterProduced !="" ){
+   // Serial.print("The letter is ");
+   //Serial.println(letterProduced);
+    index= orderMorseArray(letterProduced);
+    if (index !=24){
+      showBraille(index);
+      Serial.print("Letter order is ");
+      Serial.print(index);
+      Serial.print(" ");
+      Serial.print(morseGreek[index]);
+      Serial.print(" ");
+      Serial.println(greekLetterSymbols[index]);
+      delay(4000);
+      clearBraille();
+    } 
+    Serial.println("Waiting for next letter...");
+    
+  }
+  
+
+    delay(10); // Delay a little bit to improve simulation performance
+}
